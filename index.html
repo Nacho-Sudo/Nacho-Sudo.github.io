@@ -3,1183 +3,811 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Juan Ignacio Ramiz — Pentester</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Juan Ignacio Ramiz — Offensive Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,900;1,300;1,700&family=Barlow:wght@300;400&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:       #080C10;
-  --bg2:      #0D1117;
-  --bg3:      #131920;
-  --surface:  #161D26;
-  --border:   rgba(255,255,255,0.06);
-  --border2:  rgba(255,255,255,0.1);
-  --red:      #E84545;
-  --red2:     #FF6B6B;
-  --red-glow: rgba(232,69,69,0.15);
-  --text:     #E8EAF0;
-  --text2:    #8892A4;
-  --text3:    #4A5568;
-  --green:    #4ADE80;
-  --amber:    #F59E0B;
-  --blue:     #60A5FA;
-  --mono:     'JetBrains Mono', monospace;
-  --sans:     'Syne', sans-serif;
+  --black:  #0E0D0B;
+  --white:  #F2EFE9;
+  --red:    #D93025;
+  --g1:     #1C1B18;
+  --g2:     #2E2D29;
+  --g3:     #5C5B56;
+  --g4:     #9C9B96;
+  --border: rgba(242,239,233,0.09);
+  --cond:   'Barlow Condensed', sans-serif;
+  --body:   'Barlow', sans-serif;
+  --mono:   'IBM Plex Mono', monospace;
 }
-
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
-
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  line-height: 1.6;
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--body);
+  line-height: 1.5;
   overflow-x: hidden;
+  cursor: none;
 }
 
-/* ── NOISE TEXTURE ── */
-body::before {
+/* ── NOISE TEXTURE OVERLAY ── */
+body::after {
   content: '';
   position: fixed;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.022;
   pointer-events: none;
-  z-index: 0;
+  z-index: 9000;
+}
+
+/* ── CURSOR ── */
+.cur {
+  position: fixed;
+  width: 8px; height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width .18s, height .18s, background .18s;
+}
+.cur.big {
+  width: 36px; height: 36px;
+  background: transparent;
+  border: 1px solid var(--red);
 }
 
 /* ── NAV ── */
 nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
+  position: fixed; top: 0; left: 0; right: 0;
   z-index: 100;
-  padding: 0 48px;
-  height: 64px;
+  height: 52px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(8,12,16,0.85);
-  backdrop-filter: blur(16px);
+  align-items: stretch;
   border-bottom: 1px solid var(--border);
+  background: rgba(14,13,11,0.94);
+  backdrop-filter: blur(8px);
 }
-
 .nav-logo {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--text2);
-  letter-spacing: 0.05em;
+  display: flex; align-items: center;
+  padding: 0 28px;
+  border-right: 1px solid var(--border);
+  font-family: var(--cond);
+  font-weight: 700; font-size: 15px;
+  letter-spacing: .12em; text-transform: uppercase;
 }
-
-.nav-logo span { color: var(--red); }
-
-.nav-links {
-  display: flex;
-  gap: 36px;
-  list-style: none;
-}
-
+.nav-logo em { color: var(--red); font-style: normal; margin-right: 6px; }
+.nav-links { display: flex; list-style: none; }
+.nav-links li { border-right: 1px solid var(--border); }
 .nav-links a {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text3);
-  text-decoration: none;
-  transition: color 0.2s;
+  display: flex; align-items: center; height: 100%;
+  padding: 0 20px;
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--g4); text-decoration: none;
+  transition: color .15s, background .15s;
 }
-
-.nav-links a:hover { color: var(--text); }
-
-.nav-cta {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--red);
-  border: 1px solid rgba(232,69,69,0.4);
-  padding: 7px 16px;
-  text-decoration: none;
-  transition: all 0.2s;
+.nav-links a:hover { color: var(--white); background: var(--g1); }
+.nav-loc {
+  margin-left: auto; display: flex; align-items: center;
+  padding: 0 28px; border-left: 1px solid var(--border);
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: .08em; color: var(--g4);
 }
-
-.nav-cta:hover {
-  background: rgba(232,69,69,0.08);
-  border-color: var(--red);
+.nav-status {
+  width: 6px; height: 6px;
+  background: #5DBB7A; border-radius: 50%;
+  margin-right: 8px;
+  animation: blink 3s ease infinite;
+}
+@keyframes blink {
+  0%,100% { opacity:1; }
+  50%      { opacity:.3; }
 }
 
 /* ── HERO ── */
 #hero {
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  padding: 120px 48px 80px;
+  padding-top: 52px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  border-bottom: 1px solid var(--border);
   position: relative;
   overflow: hidden;
 }
-
-.hero-grid {
+.hero-decor {
   position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  right: -60px; top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--cond);
+  font-weight: 900;
+  font-size: clamp(260px, 34vw, 520px);
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.03);
+  line-height: 1;
+  pointer-events: none; user-select: none;
 }
 
-.hero-glow {
+/* Scanline effect on hero */
+.hero-scan {
   position: absolute;
-  width: 600px; height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(232,69,69,0.06) 0%, transparent 70%);
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(217,48,37,0.012) 2px,
+    rgba(217,48,37,0.012) 4px
+  );
   pointer-events: none;
 }
 
-.hero-content {
-  max-width: 1100px;
-  margin: 0 auto;
-  width: 100%;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-tag {
-  display: inline-flex;
+.hero-body {
+  display: grid;
+  grid-template-columns: 64px 1fr;
   align-items: center;
-  gap: 8px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--text2);
+}
+.hero-borde-v {
+  align-self: stretch;
+  border-right: 1px solid var(--border);
+  margin-top: 0;
+}
+.hero-contenido { padding: 80px 72px; }
+
+.h-kicker {
+  display: flex; align-items: center; gap: 10px;
   margin-bottom: 28px;
 }
-
-.hero-tag::before {
-  content: '';
-  width: 24px; height: 1px;
-  background: var(--red);
+.h-punto {
+  width: 7px; height: 7px;
+  background: var(--red); border-radius: 50%;
+  animation: pulse 2.4s ease infinite;
 }
-
-.hero-tag::after {
-  content: '';
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--red);
-  box-shadow: 0 0 8px var(--red);
-  animation: blink 2s ease infinite;
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.3; transform:scale(.75); }
 }
-
-@keyframes blink {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0.3; }
+.h-kicker-txt {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--g4);
 }
 
 .hero-name {
-  font-family: var(--sans);
-  font-size: clamp(48px, 7vw, 88px);
-  font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: -0.03em;
-  color: var(--text);
-  margin-bottom: 8px;
+  font-family: var(--cond);
+  font-weight: 900;
+  font-size: clamp(72px, 10.5vw, 152px);
+  line-height: .88;
+  letter-spacing: -.02em;
+  text-transform: uppercase;
+  margin-bottom: 36px;
+}
+.hero-name .l1, .hero-name .l2 { display: block; color: var(--white); }
+.hero-name .l3 {
+  display: block;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--red);
+  font-style: italic;
 }
 
-.hero-name .accent { color: var(--red); }
-
-.hero-title {
-  font-family: var(--mono);
-  font-size: clamp(14px, 2vw, 18px);
-  color: var(--text2);
-  margin-bottom: 32px;
-  font-weight: 300;
+.hero-roles {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: 0; margin-bottom: 32px;
 }
-
-.hero-title .highlight { color: var(--text); }
+.role {
+  font-family: var(--cond); font-weight: 600;
+  font-size: 14px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--g4); padding: 6px 16px;
+  border: 1px solid var(--border);
+}
+.role-div { width: 1px; height: 32px; background: var(--border); }
 
 .hero-bio {
-  max-width: 520px;
-  font-size: 16px;
-  color: var(--text2);
-  line-height: 1.8;
-  margin-bottom: 48px;
+  font-size: 17px; font-weight: 300;
+  color: var(--g4); max-width: 580px;
+  line-height: 1.8; margin-bottom: 44px;
 }
+.hero-bio strong { color: var(--white); font-weight: 400; }
 
-.hero-actions {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
+.hero-ctas { display: flex; gap: 0; }
+.btn-red {
+  font-family: var(--cond); font-weight: 700;
+  font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--black); background: var(--red);
+  padding: 14px 32px; text-decoration: none;
+  border: 1px solid var(--red);
+  display: inline-flex; align-items: center; gap: 10px;
+  transition: background .2s;
 }
-
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--red);
-  color: white;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 14px 28px;
-  text-decoration: none;
-  transition: all 0.2s;
-  font-weight: 500;
+.btn-red:hover { background: #b8231a; border-color: #b8231a; }
+.btn-outline {
+  font-family: var(--cond); font-weight: 700;
+  font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--white); background: transparent;
+  padding: 14px 26px; text-decoration: none;
+  border: 1px solid var(--border); border-left: none;
+  display: inline-flex; align-items: center; gap: 10px;
+  transition: all .2s;
 }
+.btn-outline:hover { border-color: var(--g3); background: var(--g1); }
 
-.btn-primary:hover {
-  background: var(--red2);
-  box-shadow: 0 0 24px rgba(232,69,69,0.35);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text2);
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 13px 28px;
-  text-decoration: none;
-  border: 1px solid var(--border2);
-  transition: all 0.2s;
-}
-
-.btn-secondary:hover {
-  color: var(--text);
-  border-color: var(--text3);
-}
-
+/* Stats bar */
 .hero-stats {
-  display: flex;
-  gap: 48px;
-  margin-top: 64px;
-  padding-top: 40px;
+  display: grid; grid-template-columns: repeat(4,1fr);
   border-top: 1px solid var(--border);
 }
-
-.stat-item {}
-
-.stat-num {
-  font-family: var(--sans);
-  font-size: 36px;
-  font-weight: 800;
-  color: var(--text);
-  line-height: 1;
-  margin-bottom: 4px;
+.hs {
+  padding: 22px 32px;
+  border-right: 1px solid var(--border);
 }
-
-.stat-num span { color: var(--red); }
-
-.stat-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text3);
+.hs:last-child { border-right: none; }
+.hs-n {
+  font-family: var(--cond); font-weight: 900;
+  font-size: 40px; line-height: 1;
+  color: var(--white); margin-bottom: 4px;
+}
+.hs-n sup { font-size: 18px; color: var(--red); }
+.hs-l {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--g4);
 }
 
 /* ── SECTIONS ── */
-section {
-  padding: 100px 48px;
-  position: relative;
-  z-index: 1;
+.stag {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
 }
-
-.section-inner {
-  max-width: 1100px;
-  margin: 0 auto;
+.stag::after {
+  content: ''; flex:1; max-width: 36px;
+  height: 1px; background: var(--red); opacity: .5;
 }
-
-.section-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--red);
-  margin-bottom: 16px;
+.stitle {
+  font-family: var(--cond); font-weight: 900;
+  font-size: clamp(38px,5vw,66px);
+  letter-spacing: -.02em; text-transform: uppercase;
+  line-height: .9; color: var(--white);
+  margin-bottom: 36px;
 }
-
-.section-label::after {
-  content: '';
-  flex: 1;
-  max-width: 48px;
-  height: 1px;
-  background: var(--red);
-  opacity: 0.4;
-}
-
-.section-title {
-  font-size: clamp(28px, 4vw, 42px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text);
-  margin-bottom: 16px;
-  line-height: 1.1;
-}
-
-.section-sub {
-  font-size: 16px;
-  color: var(--text2);
-  max-width: 480px;
-  line-height: 1.7;
-  margin-bottom: 56px;
+.stitle em {
+  font-style: italic; color: transparent;
+  -webkit-text-stroke: 1.5px var(--white);
 }
 
 /* ── ABOUT ── */
-#about { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-
-.about-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 80px;
-  align-items: start;
+#about {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--border);
 }
-
-.about-text p {
-  font-size: 16px;
-  color: var(--text2);
-  line-height: 1.85;
-  margin-bottom: 20px;
+.about-left {
+  padding: 80px 60px;
+  border-right: 1px solid var(--border);
 }
-
-.about-text p strong { color: var(--text); font-weight: 600; }
-
-.about-highlights {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.about-txt p {
+  font-size: 16px; font-weight: 300;
+  color: var(--g4); line-height: 1.85;
+  margin-bottom: 18px;
 }
-
-.highlight-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  padding: 18px 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 2px solid var(--red);
-  transition: border-color 0.2s;
+.about-txt p strong { color: var(--white); font-weight: 400; }
+.about-right {
+  padding: 80px 60px;
+  background: var(--g1);
 }
-
-.highlight-item:hover { border-color: var(--border2); border-left-color: var(--red2); }
-
-.hi-icon {
-  font-size: 18px;
-  margin-top: 1px;
-  flex-shrink: 0;
+.about-items { display: flex; flex-direction: column; gap: 1px; }
+.si {
+  padding: 17px 0; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 14px;
+  transition: padding-left .2s; cursor: default;
 }
-
-.hi-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 4px;
-  letter-spacing: 0.01em;
+.si:hover { padding-left: 8px; }
+.si:last-child { border-bottom: none; }
+.si-n {
+  font-family: var(--cond); font-weight: 900;
+  font-size: 11px; color: var(--red);
+  letter-spacing: .1em; padding-top: 3px;
+  flex-shrink: 0; min-width: 26px;
 }
-
-.hi-desc {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text2);
-  line-height: 1.5;
+.si-h {
+  font-family: var(--cond); font-weight: 700;
+  font-size: 16px; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--white);
+  margin-bottom: 3px;
+}
+.si-d {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--g4); line-height: 1.5; font-weight: 300;
 }
 
 /* ── SKILLS ── */
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
+#skills {
+  padding: 80px 60px;
+  border-bottom: 1px solid var(--border);
 }
-
-.skill-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 28px;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
+.sk-grid {
+  display: grid; grid-template-columns: repeat(6,1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); margin-top: 36px;
 }
-
-.skill-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: var(--red);
-  opacity: 0;
-  transition: opacity 0.2s;
+.sk {
+  background: var(--black); padding: 26px 22px;
+  transition: background .2s; position: relative;
 }
-
-.skill-card:hover { border-color: var(--border2); }
-.skill-card:hover::before { opacity: 1; }
-
-.skill-cat {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--red);
-  margin-bottom: 12px;
+.sk:hover { background: var(--g1); }
+.sk::before {
+  content: attr(data-n);
+  position: absolute; top: 13px; right: 14px;
+  font-family: var(--cond); font-weight: 900;
+  font-size: 11px; color: var(--g2); letter-spacing: .1em;
 }
-
-.skill-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 16px;
+.sk-area {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: var(--red); margin-bottom: 7px;
 }
-
-.skill-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.sk-tit {
+  font-family: var(--cond); font-weight: 700;
+  font-size: 14px; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--white);
+  margin-bottom: 13px; line-height: 1.2;
 }
-
-.tag {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text2);
-  background: rgba(255,255,255,0.04);
-  border: 1px solid var(--border);
-  padding: 4px 9px;
-  letter-spacing: 0.03em;
-  transition: all 0.15s;
+.sk-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.ktag {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: .02em; color: var(--g4);
+  border: 1px solid var(--g2); padding: 2px 7px;
+  transition: all .15s;
 }
-
-.tag:hover { color: var(--text); border-color: var(--text3); }
+.ktag:hover { color: var(--white); border-color: var(--g3); }
 
 /* ── WRITEUPS ── */
-#writeups { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-
-.writeups-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2px;
+#writeups {
+  padding: 80px 60px;
+  border-bottom: 1px solid var(--border);
+  background: var(--g1);
 }
-
-.writeup-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 32px;
-  text-decoration: none;
-  display: block;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
+.wu-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); margin-top: 36px;
 }
-
-.writeup-card::after {
-  content: '→';
-  position: absolute;
-  top: 32px; right: 32px;
-  font-size: 18px;
-  color: var(--text3);
-  transition: all 0.2s;
+.wc {
+  background: var(--black); padding: 34px 30px;
+  text-decoration: none; display: block;
+  position: relative; overflow: hidden;
+  transition: background .2s;
 }
-
-.writeup-card:hover {
-  border-color: var(--border2);
-  background: var(--bg3);
-  transform: translateY(-2px);
+.wc:hover { background: var(--g2); }
+.wc-bgn {
+  position: absolute; bottom: -18px; right: -8px;
+  font-family: var(--cond); font-weight: 900;
+  font-size: 110px; color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.04);
+  line-height: 1; pointer-events: none; user-select: none;
 }
-
-.writeup-card:hover::after {
-  color: var(--red);
-  transform: translate(3px, -3px);
+.wc-top {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 20px;
 }
-
-.wc-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
+.wc-badges { display: flex; gap: 4px; }
+.badge {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: .12em; text-transform: uppercase;
+  padding: 3px 8px; border: 1px solid;
 }
-
-.wc-os {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  padding: 3px 8px;
-  border: 1px solid;
-}
-
-.os-win { color: #60A5FA; border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.06); }
-.os-linux { color: #4ADE80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.06); }
-
-.wc-diff {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  padding: 3px 8px;
-  border: 1px solid;
-}
-
-.diff-easy { color: #4ADE80; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.06); }
-.diff-medium { color: #F59E0B; border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); }
-.diff-hard { color: #E84545; border-color: rgba(232,69,69,0.3); background: rgba(232,69,69,0.06); }
-
+.b-linux { color: #6FBF8A; border-color: rgba(111,191,138,.3); }
+.b-win   { color: #7FB3E8; border-color: rgba(127,179,232,.3); }
+.b-easy  { color: #6FBF8A; border-color: rgba(111,191,138,.25); }
+.b-med   { color: #E8C46A; border-color: rgba(232,196,106,.25); }
+.b-hard  { color: #E87878; border-color: rgba(232,120,120,.25); }
+.wc-arr { font-size: 18px; color: var(--g3); transition: all .2s; }
+.wc:hover .wc-arr { color: var(--red); transform: translate(3px,-3px); }
 .wc-name {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  font-family: var(--cond); font-weight: 900;
+  font-size: 34px; letter-spacing: -.01em;
+  text-transform: uppercase; color: var(--white);
+  margin-bottom: 10px; line-height: 1;
 }
-
 .wc-desc {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text2);
-  line-height: 1.6;
-  margin-bottom: 20px;
+  font-family: var(--mono); font-size: 11px;
+  color: var(--g4); line-height: 1.65;
+  margin-bottom: 18px; font-weight: 300;
 }
-
-.wc-techniques {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+.wc-techs { display: flex; flex-wrap: wrap; gap: 4px; }
+.wt {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: .04em; color: var(--g3);
+  border: 1px solid var(--g2); padding: 2px 7px;
 }
+.wc-pending { opacity: .3; pointer-events: none; cursor: default; }
 
-.wc-tag {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.05em;
-  color: var(--text3);
-  background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  padding: 3px 7px;
+/* ── ARSENAL ── */
+#arsenal {
+  padding: 80px 60px;
+  border-bottom: 1px solid var(--border);
 }
-
-.coming-soon {
-  border-style: dashed;
-  opacity: 0.4;
-  cursor: default;
+.arsenal-wrap {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 56px; margin-top: 36px;
 }
-
-.coming-soon:hover {
-  transform: none;
-  border-color: var(--border);
-  background: var(--surface);
+.tools-wrap {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border); align-self: start;
 }
-
-.coming-soon::after { display: none; }
-
-.cs-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text3);
-  letter-spacing: 0.1em;
-  margin-top: 20px;
+.tool {
+  background: var(--black); padding: 18px 20px;
+  transition: background .15s;
 }
-
-/* ── TOOLS ── */
-.tools-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-  margin-bottom: 40px;
+.tool:hover { background: var(--g1); }
+.t-name {
+  font-family: var(--cond); font-weight: 700;
+  font-size: 16px; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--white); margin-bottom: 2px;
 }
+.t-cat { font-family: var(--mono); font-size: 10px; color: var(--g4); }
 
-.tool-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 20px 24px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  transition: all 0.15s;
-}
-
-.tool-item:hover { border-color: var(--border2); }
-
-.tool-icon {
-  width: 36px; height: 36px;
-  background: rgba(232,69,69,0.08);
-  border: 1px solid rgba(232,69,69,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.tool-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-
-.tool-cat {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text3);
-  letter-spacing: 0.05em;
-}
-
-/* ── TERMINAL BLOCK ── */
 .terminal {
-  background: #0A0D12;
+  background: #0C0B09;
   border: 1px solid var(--border);
   border-top: 2px solid var(--red);
-  padding: 0;
-  overflow: hidden;
+  overflow: hidden; align-self: start;
 }
-
-.terminal-bar {
-  padding: 10px 16px;
-  background: rgba(255,255,255,0.03);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.term-bar {
+  background: var(--g1); border-bottom: 1px solid var(--border);
+  padding: 10px 16px; display: flex; align-items: center; gap: 7px;
 }
-
-.t-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
+.td { width: 10px; height: 10px; border-radius: 50%; }
+.td:nth-child(1) { background: #FF5F57; }
+.td:nth-child(2) { background: #FEBC2E; }
+.td:nth-child(3) { background: #28C840; }
+.t-file { font-family: var(--mono); font-size: 11px; color: var(--g4); margin-left: 8px; }
+.term-body {
+  padding: 22px 24px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.9;
 }
-
-.t-dot:nth-child(1) { background: #FF5F57; }
-.t-dot:nth-child(2) { background: #FEBC2E; }
-.t-dot:nth-child(3) { background: #28C840; }
-
-.t-title {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text3);
-  margin-left: 8px;
-  letter-spacing: 0.05em;
-}
-
-.terminal-body {
-  padding: 24px 28px;
-  font-family: var(--mono);
-  font-size: 13px;
-  line-height: 2;
-}
-
-.t-line { display: flex; gap: 12px; }
-.t-prompt { color: var(--red); user-select: none; }
-.t-cmd { color: var(--text); }
-.t-out { color: var(--text2); padding-left: 12px; }
-.t-comment { color: var(--text3); font-size: 11px; }
-.t-green { color: var(--green); }
-.t-amber { color: var(--amber); }
-.t-blue { color: var(--blue); }
-.t-blank { height: 8px; }
+.tl { display: flex; gap: 10px; }
+.tp { color: var(--red); flex-shrink: 0; user-select: none; }
+.tc { color: rgba(242,239,233,.75); }
+.to { color: var(--g4); padding-left: 10px; }
+.tg { color: #6FBF8A; } .ta { color: #E8C46A; } .tb { color: #7FB3E8; }
+.ts { height: 6px; }
 
 /* ── CONTACT ── */
-#contact { text-align: center; }
-
-.contact-card {
-  max-width: 600px;
-  margin: 0 auto;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 56px 48px;
-  position: relative;
+#contact {
+  display: grid; grid-template-columns: 1fr 1fr;
+  min-height: 400px;
 }
-
-.contact-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--red), transparent);
+.c-left {
+  padding: 80px 60px;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  justify-content: space-between;
 }
-
-.contact-email {
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--text2);
-  margin-bottom: 32px;
-  display: block;
+.c-title {
+  font-family: var(--cond); font-weight: 900;
+  font-size: clamp(50px,6vw,88px);
+  text-transform: uppercase; line-height: .88;
+  letter-spacing: -.02em; margin-bottom: 24px;
 }
-
-.contact-links {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-top: 32px;
+.c-title em {
+  font-style: italic; color: transparent;
+  -webkit-text-stroke: 1.5px var(--white);
 }
-
-.contact-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text2);
-  border: 1px solid var(--border);
-  padding: 10px 20px;
-  text-decoration: none;
-  transition: all 0.2s;
+.c-email {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--g4); letter-spacing: .04em; margin-bottom: 28px;
 }
-
-.contact-link:hover {
-  color: var(--text);
-  border-color: var(--text3);
+.c-right {
+  padding: 80px 60px;
+  background: var(--red);
+  display: flex; flex-direction: column;
+  justify-content: space-between;
 }
+.c-avail {
+  font-family: var(--mono); font-size: 11px;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(14,13,11,.65); margin-bottom: 20px;
+}
+.c-copy {
+  font-size: 18px; font-weight: 300;
+  color: var(--black); line-height: 1.75; margin-bottom: 36px;
+}
+.c-copy strong { font-weight: 600; }
+.c-links { display: flex; flex-direction: column; gap: 1px; }
+.c-link {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(14,13,11,.15);
+  border: 1px solid rgba(14,13,11,.2);
+  font-family: var(--cond); font-weight: 700;
+  font-size: 14px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--black); text-decoration: none;
+  transition: background .15s;
+}
+.c-link:hover { background: rgba(14,13,11,.28); }
 
 /* ── FOOTER ── */
 footer {
-  padding: 24px 48px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
   border-top: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
+.fc {
+  padding: 18px 32px; border-right: 1px solid var(--border);
+  font-family: var(--mono); font-size: 10px;
+  color: var(--g4); letter-spacing: .05em;
+  display: flex; align-items: center;
+}
+.fc:last-child { border-right: none; justify-content: flex-end; }
 
-.footer-text {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text3);
-  letter-spacing: 0.05em;
-}
-
-.footer-note {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--text3);
-}
-
-/* ── DIVIDER ── */
-.divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border2), transparent);
-  margin: 0 48px;
-}
-
-/* ── ANIMATIONS ── */
-.fade-in {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-.fade-in.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+/* ── REVEAL ── */
+.r { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
+.r.v { opacity: 1; transform: translateY(0); }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 900px) {
-  nav { padding: 0 24px; }
+@media (max-width: 1024px) {
   .nav-links { display: none; }
-  #hero, section, footer { padding-left: 24px; padding-right: 24px; }
-  .about-grid { grid-template-columns: 1fr; gap: 40px; }
-  .skills-grid { grid-template-columns: 1fr 1fr; }
-  .tools-grid { grid-template-columns: 1fr 1fr; }
-  .hero-stats { gap: 28px; flex-wrap: wrap; }
+  .hero-body  { grid-template-columns: 1fr; }
+  .hero-borde-v { display: none; }
+  .hero-contenido { padding: 60px 28px; }
+  .hero-stats { grid-template-columns: 1fr 1fr; }
+  #about { grid-template-columns: 1fr; padding: 0; }
+  #about .about-left { padding: 60px 28px; border-right: none; border-bottom: 1px solid var(--border); }
+  #about .about-right { padding: 60px 28px; }
+  #skills { padding: 60px 28px; }
+  #writeups { padding: 60px 28px; }
+  #arsenal { padding: 60px 28px; }
+  #contact { grid-template-columns: 1fr; }
+  .c-left { padding: 60px 28px; border-right: none; border-bottom: 1px solid var(--border); }
+  .c-right { padding: 60px 28px; }
+  .sk-grid { grid-template-columns: repeat(3,1fr); }
+  .wu-grid { grid-template-columns: 1fr 1fr; }
+  .arsenal-wrap { grid-template-columns: 1fr; }
+  footer { grid-template-columns: 1fr; }
+  .fc { border-right: none; border-bottom: 1px solid var(--border); justify-content: flex-start; }
+  .fc:last-child { border-bottom: none; }
 }
-
-@media (max-width: 600px) {
-  .skills-grid, .tools-grid { grid-template-columns: 1fr; }
-  .hero-actions { flex-direction: column; align-items: flex-start; }
-  .contact-card { padding: 36px 24px; }
+@media (max-width: 640px) {
+  .sk-grid { grid-template-columns: 1fr 1fr; }
+  .wu-grid { grid-template-columns: 1fr; }
+  .tools-wrap { grid-template-columns: 1fr; }
+  .hero-ctas { flex-wrap: wrap; }
+  .btn-outline { border-left: 1px solid var(--border); }
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
+<div class="cur" id="cur"></div>
+
 <nav>
-  <div class="nav-logo"><span>//</span> nacho-sudo</div>
+  <div class="nav-logo"><em>//</em>JI Ramiz</div>
   <ul class="nav-links">
-    <li><a href="#about">About</a></li>
+    <li><a href="#about">Profile</a></li>
     <li><a href="#skills">Skills</a></li>
     <li><a href="#writeups">Writeups</a></li>
-    <li><a href="#tools">Arsenal</a></li>
+    <li><a href="#arsenal">Arsenal</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
-  <a href="mailto:juanignacioramizmartinez@gmail.com" class="nav-cta">Hire Me</a>
+  <div class="nav-loc"><span class="nav-status"></span>Mendoza · AR · Remote</div>
 </nav>
 
-<!-- HERO -->
 <section id="hero">
-  <div class="hero-grid"></div>
-  <div class="hero-glow"></div>
-  <div class="hero-content">
-    <div class="hero-tag">Available for remote opportunities</div>
-    <h1 class="hero-name">Juan Ignacio<br>Ramiz<span class="accent">.</span></h1>
-    <p class="hero-title">
-      <span class="highlight">Junior Pentester</span> · Offensive Security · Active Directory
-    </p>
-    <p class="hero-bio">
-      Security professional focused on offensive techniques. I break things in controlled environments — HTB, TryHackMe, VulnHub — and document everything. My dev background in React and APIs lets me attack from the inside out.
-    </p>
-    <div class="hero-actions">
-      <a href="#writeups" class="btn-primary">
-        <span>↓</span> View Writeups
-      </a>
-      <a href="https://github.com/Nacho-Sudo" target="_blank" class="btn-secondary">
-        <span>◈</span> GitHub
-      </a>
-      <a href="https://app.hackthebox.com/users/2705371" target="_blank" class="btn-secondary">
-        <span>◈</span> HackTheBox
-      </a>
-    </div>
-    <div class="hero-stats">
-      <div class="stat-item">
-        <div class="stat-num">10<span>+</span></div>
-        <div class="stat-label">HTB Machines</div>
+  <div class="hero-decor">JIR</div>
+  <div class="hero-scan"></div>
+  <div class="hero-body">
+    <div class="hero-borde-v"></div>
+    <div class="hero-contenido">
+      <div class="h-kicker">
+        <div class="h-punto"></div>
+        <span class="h-kicker-txt">Available — open to remote work</span>
       </div>
-      <div class="stat-item">
-        <div class="stat-num">03</div>
-        <div class="stat-label">Public Writeups</div>
+      <h1 class="hero-name">
+        <span class="l1">Juan</span>
+        <span class="l2">Ignacio</span>
+        <span class="l3">Ramiz.</span>
+      </h1>
+      <div class="hero-roles">
+        <span class="role">Jr. Pentester</span>
+        <div class="role-div"></div>
+        <span class="role">Offensive Security</span>
+        <div class="role-div"></div>
+        <span class="role">Active Directory</span>
       </div>
-      <div class="stat-item">
-        <div class="stat-num">2<span>+</span></div>
-        <div class="stat-label">Years Training</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-num">AR</div>
-        <div class="stat-label">Mendoza · Remote</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ABOUT -->
-<section id="about">
-  <div class="section-inner">
-    <div class="section-label">01 — About</div>
-    <div class="about-grid">
-      <div class="about-text fade-in">
-        <h2 class="section-title">Attacking systems.<br>Understanding them.</h2>
-        <p>
-          I'm a Junior Pentester based in <strong>Mendoza, Argentina</strong>, focused on offensive security and ethical hacking. I train daily on <strong>Hack The Box</strong>, applying real attack techniques in safe, controlled environments.
-        </p>
-        <p>
-          My background as a <strong>web developer</strong> (React, Next.js, APIs) gives me a unique edge: I understand how applications are built, which means I know exactly where they break. I identify vulnerabilities from both the attacker and the developer perspective.
-        </p>
-        <p>
-          Currently pursuing a <strong>Bachelor's Degree in Networks & Telecommunications</strong> at Universidad de Aconcagua. Open to remote pentesting roles, bug bounty programs, and red team opportunities.
-        </p>
-      </div>
-      <div class="about-highlights fade-in">
-        <div class="highlight-item">
-          <div class="hi-icon">🔴</div>
-          <div>
-            <div class="hi-title">Offensive Security Focus</div>
-            <div class="hi-desc">Web exploitation · Linux/Windows privesc · Active Directory attack paths</div>
-          </div>
-        </div>
-        <div class="highlight-item">
-          <div class="hi-icon">🌐</div>
-          <div>
-            <div class="hi-title">Web App Pentesting</div>
-            <div class="hi-desc">OWASP Top 10 · Auth flaws · Business logic bugs · API security</div>
-          </div>
-        </div>
-        <div class="highlight-item">
-          <div class="hi-icon">🏛️</div>
-          <div>
-            <div class="hi-title">Active Directory</div>
-            <div class="hi-desc">Kerberoasting · RBCD · BloodHound · Impacket suite</div>
-          </div>
-        </div>
-        <div class="highlight-item">
-          <div class="hi-icon">📋</div>
-          <div>
-            <div class="hi-title">Technical Documentation</div>
-            <div class="hi-desc">Professional writeups · Methodology-driven · Reproducible findings</div>
-          </div>
-        </div>
-        <div class="highlight-item">
-          <div class="hi-icon">💻</div>
-          <div>
-            <div class="hi-title">Dev Background</div>
-            <div class="hi-desc">React · Next.js · TypeScript · Express · Python · Bash</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- SKILLS -->
-<section id="skills">
-  <div class="section-inner">
-    <div class="section-label">02 — Skills</div>
-    <h2 class="section-title fade-in">Technical Arsenal</h2>
-    <p class="section-sub fade-in">Tools and techniques applied in real lab environments.</p>
-    <div class="skills-grid fade-in">
-      <div class="skill-card">
-        <div class="skill-cat">Reconnaissance</div>
-        <div class="skill-title">Information Gathering</div>
-        <div class="skill-tags">
-          <span class="tag">nmap</span><span class="tag">gobuster</span><span class="tag">wfuzz</span>
-          <span class="tag">ffuf</span><span class="tag">enum4linux</span><span class="tag">whatweb</span>
-          <span class="tag">bloodhound-python</span><span class="tag">ldapsearch</span>
-        </div>
-      </div>
-      <div class="skill-card">
-        <div class="skill-cat">Web Exploitation</div>
-        <div class="skill-title">Web Application Attacks</div>
-        <div class="skill-tags">
-          <span class="tag">Burp Suite</span><span class="tag">SQLMap</span><span class="tag">OWASP Top 10</span>
-          <span class="tag">SQLi</span><span class="tag">XSS</span><span class="tag">LFI/RFI</span>
-          <span class="tag">SSRF</span><span class="tag">Command Injection</span>
-        </div>
-      </div>
-      <div class="skill-card">
-        <div class="skill-cat">Exploitation</div>
-        <div class="skill-title">Initial Access</div>
-        <div class="skill-tags">
-          <span class="tag">Metasploit</span><span class="tag">evil-winrm</span><span class="tag">netexec</span>
-          <span class="tag">impacket</span><span class="tag">hydra</span><span class="tag">netcat</span>
-          <span class="tag">reverse shells</span>
-        </div>
-      </div>
-      <div class="skill-card">
-        <div class="skill-cat">Post-Exploitation</div>
-        <div class="skill-title">Privilege Escalation</div>
-        <div class="skill-tags">
-          <span class="tag">LinPEAS</span><span class="tag">WinPEAS</span><span class="tag">SUID abuse</span>
-          <span class="tag">sudo misconfig</span><span class="tag">token impersonation</span>
-          <span class="tag">credential harvesting</span>
-        </div>
-      </div>
-      <div class="skill-card">
-        <div class="skill-cat">Active Directory</div>
-        <div class="skill-title">AD Attack Paths</div>
-        <div class="skill-tags">
-          <span class="tag">BloodHound</span><span class="tag">Kerberoasting</span><span class="tag">RBCD</span>
-          <span class="tag">Pass-the-Hash</span><span class="tag">AS-REP Roasting</span>
-          <span class="tag">DCSync</span><span class="tag">GenericAll</span>
-        </div>
-      </div>
-      <div class="skill-card">
-        <div class="skill-cat">Scripting & Dev</div>
-        <div class="skill-title">Automation & Development</div>
-        <div class="skill-tags">
-          <span class="tag">Python</span><span class="tag">Bash</span><span class="tag">React</span>
-          <span class="tag">TypeScript</span><span class="tag">Next.js</span>
-          <span class="tag">custom tooling</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- WRITEUPS -->
-<section id="writeups">
-  <div class="section-inner">
-    <div class="section-label">03 — Writeups</div>
-    <h2 class="section-title fade-in">HTB Writeups</h2>
-    <p class="section-sub fade-in">Technical documentation of retired Hack The Box machines. Each writeup covers the full attack chain with explanations.</p>
-
-    <div class="writeups-grid fade-in">
-
-      <!-- Support -->
-        <a class="writeup-card" href="https://nacho-sudo.github.io/htb-writeups/support/index.html" target="_blank">
-              <div class="wc-meta">
-          <span class="wc-os os-win">Windows</span>
-          <span class="wc-diff diff-easy">Easy</span>
-        </div>
-        <div class="wc-name">Support</div>
-        <div class="wc-desc">
-          Domain Controller · SMB null session → .NET binary reversing → XOR decryption → LDAP enum → RBCD attack → SYSTEM
-        </div>
-        <div class="wc-techniques">
-          <span class="wc-tag">SMB Enum</span>
-          <span class="wc-tag">.NET Reversing</span>
-          <span class="wc-tag">XOR Decrypt</span>
-          <span class="wc-tag">LDAP</span>
-          <span class="wc-tag">Evil-WinRM</span>
-          <span class="wc-tag">RBCD</span>
-          <span class="wc-tag">BloodHound</span>
-        </div>
-      </a>
-      <a class="writeup-card" href="https://nacho-sudo.github.io/htb-writeups/AirTouch/AirTouch.html" target="_blank">
-    <div class="wc-meta">
-    <span class="wc-os os-linux">Linux</span>
-    <span class="wc-diff diff-medium">Medium</span>
-   </div>
-    <div class="wc-name">AirTouch</div>
-    <div class="wc-desc">
-    SNMP enumeration → WPA handshake capture → Aircrack-ng → Web exploitation → Evil Twin attack → credential harvesting
-    </div>
-    <div class="wc-techniques">
-    <span class="wc-tag">SNMP</span>
-    <span class="wc-tag">WPA</span>
-    <span class="wc-tag">Aircrack-ng</span>
-    <span class="wc-tag">Upload Bypass</span>
-    <span class="wc-tag">Reverse Shell</span>
-    <span class="wc-tag">Evil Twin</span>
-    </div>
-    </a>
-
-    <a class="writeup-card" href="https://nacho-sudo.github.io/htb-writeups/Signed/signed-writeup.html" target="_blank">
-  <div class="wc-meta">
-    <span class="wc-os os-win">Windows</span>
-    <span class="wc-diff diff-medium">Medium</span>
-  </div>
-  <div class="wc-name">Signed</div>
-  <div class="wc-desc">
-    MSSQL login → Responder NTLM capture → hashcat → Silver Ticket attack → sysadmin → file read via OPENROWSET
-  </div>
-  <div class="wc-techniques">
-    <span class="wc-tag">MSSQL</span>
-    <span class="wc-tag">Responder</span>
-    <span class="wc-tag">NTLMv2</span>
-    <span class="wc-tag">hashcat</span>
-    <span class="wc-tag">Kerberos</span>
-    <span class="wc-tag">Silver Ticket</span>
-    <span class="wc-tag">OPENROWSET</span>
-  </div>
-</a>
-      <!-- Coming soon cards -->
-      <div class="writeup-card coming-soon">
-        <div class="wc-meta"><span class="wc-os os-linux">Linux</span><span class="wc-diff diff-easy">Easy</span></div>
-        <div class="wc-name">???</div>
-        <div class="wc-desc">Next writeup in progress. Machine retired soon.</div>
-        <div class="cs-label">// Coming soon</div>
-      </div>
-
-      <div class="writeup-card coming-soon">
-        <div class="wc-meta"><span class="wc-os os-linux">Linux</span><span class="wc-diff diff-hard">Hard</span></div>
-        <div class="wc-name">???</div>
-        <div class="wc-desc">Hard difficulty machine — currently solving.</div>
-        <div class="cs-label">// In progress</div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- TOOLS / TERMINAL -->
-<section id="tools">
-  <div class="section-inner">
-    <div class="section-label">04 — Arsenal</div>
-    <h2 class="section-title fade-in">Tools & Environment</h2>
-    <p class="section-sub fade-in">The stack I use daily for recon, exploitation and post-exploitation.</p>
-
-    <div class="tools-grid fade-in">
-      <div class="tool-item"><div class="tool-icon">🗺️</div><div><div class="tool-name">Nmap</div><div class="tool-cat">Recon · Port Scanning</div></div></div>
-      <div class="tool-item"><div class="tool-icon">🕷️</div><div><div class="tool-name">Burp Suite</div><div class="tool-cat">Web · Proxy · Fuzzing</div></div></div>
-      <div class="tool-item"><div class="tool-icon">🩸</div><div><div class="tool-name">BloodHound</div><div class="tool-cat">Active Directory</div></div></div>
-      <div class="tool-item"><div class="tool-icon">🐉</div><div><div class="tool-name">Metasploit</div><div class="tool-cat">Exploitation · Post-Expl.</div></div></div>
-      <div class="tool-item"><div class="tool-icon">📦</div><div><div class="tool-name">Impacket</div><div class="tool-cat">AD · Kerberos · SMB</div></div></div>
-      <div class="tool-item"><div class="tool-icon">🔗</div><div><div class="tool-name">Evil-WinRM</div><div class="tool-cat">Windows Shell</div></div></div>
-      <div class="tool-item"><div class="tool-icon">🔍</div><div><div class="tool-name">Gobuster</div><div class="tool-cat">Dir/DNS Bruteforce</div></div></div>
-      <div class="tool-item"><div class="tool-icon">🌐</div><div><div class="tool-name">Netexec</div><div class="tool-cat">Network Auth Testing</div></div></div>
-    </div>
-
-    <div class="terminal fade-in">
-      <div class="terminal-bar">
-        <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
-        <span class="t-title">bash — parrot@kali: ~/HTB/Support</span>
-      </div>
-      <div class="terminal-body">
-        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">nmap -sS -p- --open --min-rate 5000 -Pn -n 10.129.34.198</span></div>
-        <div class="t-out t-line"><span class="t-green">PORT     STATE SERVICE</span></div>
-        <div class="t-out t-line"><span class="t-amber">88/tcp   open  kerberos-sec</span></div>
-        <div class="t-out t-line"><span class="t-amber">389/tcp  open  ldap           → Domain: support.htb</span></div>
-        <div class="t-out t-line"><span class="t-amber">445/tcp  open  microsoft-ds</span></div>
-        <div class="t-out t-line"><span class="t-blue">5985/tcp open  winrm          ← shell vector</span></div>
-        <div class="t-blank"></div>
-        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">smbclient -L //10.129.34.198 -N</span></div>
-        <div class="t-out t-line"><span class="t-green">support-tools   Disk   ← non-standard share found</span></div>
-        <div class="t-blank"></div>
-        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">strings -e l UserInfo.exe | grep -i pass</span></div>
-        <div class="t-out t-line"><span class="t-amber">0Nv32PTwgYjzg9/8j5TbmvPd3e7WhtWWyuPsyO76/Y+U193E  ← encrypted creds</span></div>
-        <div class="t-blank"></div>
-        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">python3 decrypt.py</span></div>
-        <div class="t-out t-line"><span class="t-green">[+] Password: nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz</span></div>
-        <div class="t-blank"></div>
-        <div class="t-line"><span class="t-prompt">$</span><span class="t-cmd">evil-winrm -i 10.129.34.198 -u support -p 'Ironside47pleasure40Watchful'</span></div>
-        <div class="t-out t-line"><span class="t-green">Evil-WinRM shell v3.5 — Connected as support@SUPPORT</span></div>
-        <div class="t-blank"></div>
-        <div class="t-line"><span class="t-prompt">*WinRM*</span><span class="t-cmd"> whoami</span></div>
-        <div class="t-out t-line"><span class="t-green">support\support → SYSTEM via RBCD attack</span></div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- CONTACT -->
-<section id="contact">
-  <div class="section-inner">
-    <div class="section-label" style="justify-content:center">05 — Contact</div>
-    <div class="contact-card fade-in">
-      <h2 class="section-title" style="margin-bottom:12px">Let's work together</h2>
-      <p style="color:var(--text2);font-size:15px;margin-bottom:28px;line-height:1.7">
-        Open to remote pentesting roles, bug bounty collaborations, and red team opportunities. Available immediately.
+      <p class="hero-bio">
+        I study how systems are built so I can find where they break. I practice on <strong>Hack The Box</strong> with real-world techniques, documenting every step. I came from <strong>web development</strong> — and that background changes everything: I attack from the inside out.
       </p>
-      <span class="contact-email">juanignacioramizmartinez@gmail.com</span>
-      <a href="mailto:juanignacioramizmartinez@gmail.com" class="btn-primary" style="margin:0 auto 0;display:inline-flex">
-        Send Email →
-      </a>
-      <div class="contact-links">
-        <a href="https://github.com/Nacho-Sudo" target="_blank" class="contact-link">◈ GitHub</a>
-        <a href="https://app.hackthebox.com/users/2705371" target="_blank" class="contact-link">◈ HackTheBox</a>
-        <a href="https://linkedin.com/in/juan-ignacio-ramiz-martinez-8011ba3aa/" target="_blank" class="contact-link">◈ LinkedIn</a>
-        <a href="https://github.com/Nacho-Sudo/security-scripts" target="_blank" class="contact-link">◈ Scripts</a>
+      <div class="hero-ctas">
+        <a href="#writeups" class="btn-red">View writeups →</a>
+        <a href="https://github.com/Nacho-Sudo" target="_blank" class="btn-outline">GitHub</a>
+        <a href="https://app.hackthebox.com/users/2705371" target="_blank" class="btn-outline">HackTheBox</a>
       </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="hs"><div class="hs-n">10<sup>+</sup></div><div class="hs-l">HTB Machines</div></div>
+    <div class="hs"><div class="hs-n">03</div><div class="hs-l">Public Writeups</div></div>
+    <div class="hs"><div class="hs-n">2<sup>+</sup></div><div class="hs-l">Years Training</div></div>
+    <div class="hs"><div class="hs-n">MDZ</div><div class="hs-l">Argentina · Remote</div></div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="about-left r">
+    <div class="stag">01 — Profile</div>
+    <h2 class="stitle">Understand<br>to<br><em>break.</em></h2>
+    <div class="about-txt">
+      <p>I'm a junior pentester based in <strong>Mendoza, Argentina</strong>. I specialize in offensive security: understanding how something is built and finding where it fails. I practice daily on <strong>Hack The Box</strong> with real techniques in controlled environments.</p>
+      <p>Before security, I worked as a <strong>web developer</strong> — React, Next.js, TypeScript. That shifted how I see vulnerabilities: not as isolated tricks, but as direct consequences of design and code decisions. I know what the developer was thinking. That's an edge.</p>
+      <p>I'm currently pursuing a <strong>B.S. in Networks and Telecommunications</strong> at Universidad de Aconcagua. Actively looking for remote roles in pentesting, bug bounty, or red team.</p>
+    </div>
+  </div>
+  <div class="about-right r">
+    <div class="stag" style="margin-bottom:28px">Specializations</div>
+    <div class="about-items">
+      <div class="si"><span class="si-n">01</span><div><div class="si-h">Offensive Security</div><div class="si-d">Web · Linux/Windows privesc · Active Directory</div></div></div>
+      <div class="si"><span class="si-n">02</span><div><div class="si-h">Web Pentesting</div><div class="si-d">OWASP Top 10 · Auth flaws · Business logic · APIs</div></div></div>
+      <div class="si"><span class="si-n">03</span><div><div class="si-h">Active Directory</div><div class="si-d">Kerberoasting · RBCD · BloodHound · Impacket</div></div></div>
+      <div class="si"><span class="si-n">04</span><div><div class="si-h">Technical Documentation</div><div class="si-d">Writeups · Structured methodology · Reproducible</div></div></div>
+      <div class="si"><span class="si-n">05</span><div><div class="si-h">Development</div><div class="si-d">React · Next.js · TypeScript · Python · Bash</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="skills">
+  <div class="r">
+    <div class="stag">02 — Skills</div>
+    <h2 class="stitle">Technical<br><em>arsenal.</em></h2>
+  </div>
+  <div class="sk-grid r">
+    <div class="sk" data-n="01"><div class="sk-area">Reconnaissance</div><div class="sk-tit">Info Gathering</div><div class="sk-tags"><span class="ktag">nmap</span><span class="ktag">gobuster</span><span class="ktag">ffuf</span><span class="ktag">wfuzz</span><span class="ktag">enum4linux</span><span class="ktag">whatweb</span><span class="ktag">ldapsearch</span></div></div>
+    <div class="sk" data-n="02"><div class="sk-area">Web</div><div class="sk-tit">Web Exploitation</div><div class="sk-tags"><span class="ktag">Burp Suite</span><span class="ktag">SQLMap</span><span class="ktag">OWASP Top 10</span><span class="ktag">SQLi</span><span class="ktag">XSS</span><span class="ktag">LFI/RFI</span><span class="ktag">SSRF</span></div></div>
+    <div class="sk" data-n="03"><div class="sk-area">Exploitation</div><div class="sk-tit">Initial Access</div><div class="sk-tags"><span class="ktag">Metasploit</span><span class="ktag">evil-winrm</span><span class="ktag">netexec</span><span class="ktag">impacket</span><span class="ktag">hydra</span><span class="ktag">netcat</span></div></div>
+    <div class="sk" data-n="04"><div class="sk-area">Post-Exploitation</div><div class="sk-tit">PrivEsc</div><div class="sk-tags"><span class="ktag">LinPEAS</span><span class="ktag">WinPEAS</span><span class="ktag">SUID abuse</span><span class="ktag">sudo misconfig</span><span class="ktag">token impersonation</span></div></div>
+    <div class="sk" data-n="05"><div class="sk-area">Active Directory</div><div class="sk-tit">AD Attacks</div><div class="sk-tags"><span class="ktag">BloodHound</span><span class="ktag">Kerberoasting</span><span class="ktag">RBCD</span><span class="ktag">Pass-the-Hash</span><span class="ktag">AS-REP Roasting</span><span class="ktag">DCSync</span></div></div>
+    <div class="sk" data-n="06"><div class="sk-area">Scripting</div><div class="sk-tit">Development</div><div class="sk-tags"><span class="ktag">Python</span><span class="ktag">Bash</span><span class="ktag">React</span><span class="ktag">TypeScript</span><span class="ktag">Next.js</span><span class="ktag">custom tools</span></div></div>
+  </div>
+</section>
+
+<section id="writeups">
+  <div class="r">
+    <div class="stag">03 — Writeups</div>
+    <h2 class="stitle">HTB<br><em>documentation.</em></h2>
+  </div>
+  <div class="wu-grid r">
+    <a class="wc" href="https://nacho-sudo.github.io/htb-writeups/support/index.html" target="_blank">
+      <div class="wc-bgn">01</div>
+      <div class="wc-top"><div class="wc-badges"><span class="badge b-win">Windows</span><span class="badge b-easy">Easy</span></div><span class="wc-arr">↗</span></div>
+      <div class="wc-name">Support</div>
+      <div class="wc-desc">SMB null session → .NET reversing → XOR decryption → LDAP enum → RBCD attack → SYSTEM</div>
+      <div class="wc-techs"><span class="wt">SMB Enum</span><span class="wt">.NET Reversing</span><span class="wt">XOR</span><span class="wt">LDAP</span><span class="wt">Evil-WinRM</span><span class="wt">RBCD</span><span class="wt">BloodHound</span></div>
+    </a>
+    <a class="wc" href="https://nacho-sudo.github.io/htb-writeups/AirTouch/AirTouch.html" target="_blank">
+      <div class="wc-bgn">02</div>
+      <div class="wc-top"><div class="wc-badges"><span class="badge b-linux">Linux</span><span class="badge b-med">Medium</span></div><span class="wc-arr">↗</span></div>
+      <div class="wc-name">AirTouch</div>
+      <div class="wc-desc">SNMP enum → WPA capture → Aircrack-ng → web exploitation → Evil Twin → credential capture</div>
+      <div class="wc-techs"><span class="wt">SNMP</span><span class="wt">WPA</span><span class="wt">Aircrack-ng</span><span class="wt">Upload Bypass</span><span class="wt">Reverse Shell</span><span class="wt">Evil Twin</span></div>
+    </a>
+    <a class="wc" href="https://nacho-sudo.github.io/htb-writeups/Signed/signed-writeup.html" target="_blank">
+      <div class="wc-bgn">03</div>
+      <div class="wc-top"><div class="wc-badges"><span class="badge b-win">Windows</span><span class="badge b-med">Medium</span></div><span class="wc-arr">↗</span></div>
+      <div class="wc-name">Signed</div>
+      <div class="wc-desc">MSSQL login → NTLM via Responder → hashcat → Silver Ticket → sysadmin → file read via OPENROWSET</div>
+      <div class="wc-techs"><span class="wt">MSSQL</span><span class="wt">Responder</span><span class="wt">NTLMv2</span><span class="wt">hashcat</span><span class="wt">Kerberos</span><span class="wt">Silver Ticket</span></div>
+    </a>
+    <div class="wc wc-pending">
+      <div class="wc-bgn">04</div>
+      <div class="wc-top"><div class="wc-badges"><span class="badge b-linux">Linux</span><span class="badge b-easy">Easy</span></div></div>
+      <div class="wc-name">???</div>
+      <div class="wc-desc">Next writeup — currently in progress.</div>
+    </div>
+    <div class="wc wc-pending">
+      <div class="wc-bgn">05</div>
+      <div class="wc-top"><div class="wc-badges"><span class="badge b-linux">Linux</span><span class="badge b-hard">Hard</span></div></div>
+      <div class="wc-name">???</div>
+      <div class="wc-desc">Hard — currently being solved.</div>
+    </div>
+  </div>
+</section>
+
+<section id="arsenal">
+  <div class="r">
+    <div class="stag">04 — Arsenal</div>
+    <h2 class="stitle">Tools &<br><em>environment.</em></h2>
+  </div>
+  <div class="arsenal-wrap r">
+    <div class="tools-wrap">
+      <div class="tool"><div class="t-name">Nmap</div><div class="t-cat">Recon · Port Scanning</div></div>
+      <div class="tool"><div class="t-name">Burp Suite</div><div class="t-cat">Web · Proxy · Fuzzing</div></div>
+      <div class="tool"><div class="t-name">BloodHound</div><div class="t-cat">Active Directory</div></div>
+      <div class="tool"><div class="t-name">Metasploit</div><div class="t-cat">Exploitation · Post-Expl.</div></div>
+      <div class="tool"><div class="t-name">Impacket</div><div class="t-cat">AD · Kerberos · SMB</div></div>
+      <div class="tool"><div class="t-name">Evil-WinRM</div><div class="t-cat">Windows Shell</div></div>
+      <div class="tool"><div class="t-name">Gobuster</div><div class="t-cat">Dir / DNS Bruteforce</div></div>
+      <div class="tool"><div class="t-name">Netexec</div><div class="t-cat">Network Auth Testing</div></div>
+    </div>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="td"></div><div class="td"></div><div class="td"></div>
+        <span class="t-file">~/HTB/Support — bash</span>
+      </div>
+      <div class="term-body">
+        <div class="tl"><span class="tp">$</span><span class="tc">nmap -sS -p- --open --min-rate 5000 -Pn 10.129.34.198</span></div>
+        <div class="to tl"><span class="tg">88/tcp   open  kerberos-sec</span></div>
+        <div class="to tl"><span class="ta">389/tcp  open  ldap  → support.htb</span></div>
+        <div class="to tl"><span class="ta">445/tcp  open  microsoft-ds</span></div>
+        <div class="to tl"><span class="tb">5985/tcp open  winrm  ← shell vector</span></div>
+        <div class="ts"></div>
+        <div class="tl"><span class="tp">$</span><span class="tc">smbclient -L //10.129.34.198 -N</span></div>
+        <div class="to tl"><span class="tg">support-tools  Disk  ← non-standard share</span></div>
+        <div class="ts"></div>
+        <div class="tl"><span class="tp">$</span><span class="tc">python3 decrypt.py</span></div>
+        <div class="to tl"><span class="tg">[+] Password: nvEfEK16^1aM4$e7AclUf8x$...</span></div>
+        <div class="ts"></div>
+        <div class="tl"><span class="tp">$</span><span class="tc">evil-winrm -i 10.129.34.198 -u support -p '...'</span></div>
+        <div class="to tl"><span class="tg">Connected as support@SUPPORT</span></div>
+        <div class="ts"></div>
+        <div class="tl"><span class="tp">*WinRM*</span><span class="tc"> whoami</span></div>
+        <div class="to tl"><span class="tg">nt authority\system  ← RBCD successful</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="c-left r">
+    <div>
+      <div class="stag">05 — Contact</div>
+      <h2 class="c-title">Let's<br>talk<br><em>soon.</em></h2>
+      <p class="c-email">juanignacioramizmartinez@gmail.com</p>
+    </div>
+    <a href="mailto:juanignacioramizmartinez@gmail.com" class="btn-red">Send email →</a>
+  </div>
+  <div class="c-right r">
+    <div>
+      <div class="c-avail">● Available now</div>
+      <p class="c-copy">Looking for remote <strong>pentesting</strong> roles, <strong>bug bounty</strong> collaborations, and <strong>red team</strong> opportunities. Available immediately.</p>
+    </div>
+    <div class="c-links">
+      <a href="https://github.com/Nacho-Sudo" target="_blank" class="c-link">GitHub <span>↗</span></a>
+      <a href="https://app.hackthebox.com/users/2705371" target="_blank" class="c-link">HackTheBox <span>↗</span></a>
+      <a href="https://linkedin.com/in/juan-ignacio-ramiz-martinez-8011ba3aa/" target="_blank" class="c-link">LinkedIn <span>↗</span></a>
+      <a href="https://github.com/Nacho-Sudo/security-scripts" target="_blank" class="c-link">Scripts <span>↗</span></a>
     </div>
   </div>
 </section>
 
 <footer>
-  <span class="footer-text">// Juan Ignacio Ramiz Martinez · Mendoza, AR</span>
-  <span class="footer-note">All activities performed in legal, controlled environments</span>
+  <div class="fc">Juan Ignacio Ramiz Martinez</div>
+  <div class="fc">Mendoza, Argentina</div>
+  <div class="fc">All activity in legal, controlled environments</div>
 </footer>
 
 <script>
-// Intersection Observer para fade-in
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if (entry.isIntersecting) {
-      setTimeout(() => entry.target.classList.add('visible'), i * 80);
-      observer.unobserve(entry.target);
+const cur = document.getElementById('cur');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+document.querySelectorAll('a,button').forEach(el => {
+  el.addEventListener('mouseenter', () => cur.classList.add('big'));
+  el.addEventListener('mouseleave', () => cur.classList.remove('big'));
+});
+
+const obs = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('v'), i * 55);
+      obs.unobserve(e.target);
     }
   });
-}, { threshold: 0.1 });
-
-document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-// Typing effect en hero
-const titles = [
-  'Junior Pentester · Offensive Security · Active Directory',
-  'Web App Pentesting · OWASP Top 10 · Linux PrivEsc',
-  'Red Team · HTB · Active Directory Attacks',
-];
-let ti = 0, ci = 0, deleting = false;
-const el = document.querySelector('.hero-title');
-const base = '<span class="highlight">';
-
-function type() {
-  const current = titles[ti];
-  if (!deleting) {
-    ci++;
-    el.innerHTML = `${base}${current.slice(0,ci)}</span>`;
-    if (ci === current.length) { deleting = true; setTimeout(type, 2200); return; }
-  } else {
-    ci--;
-    el.innerHTML = `${base}${current.slice(0,ci)}</span>`;
-    if (ci === 0) { deleting = false; ti = (ti+1) % titles.length; }
-  }
-  setTimeout(type, deleting ? 28 : 52);
-}
-setTimeout(type, 1200);
+}, { threshold: 0.07 });
+document.querySelectorAll('.r').forEach(el => obs.observe(el));
 </script>
-
 </body>
 </html>
